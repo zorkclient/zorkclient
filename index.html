@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZorkClients</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:   #050507;
+  --bg1:  #07080c;
+  --bg2:  #0b0d15;
+  --line: rgba(255,255,255,0.06);
+  --line2:rgba(255,255,255,0.03);
+  --a:    #5b8cff;
+  --a2:   #a855f7;
+  --text: #b0b5c3;
+  --dim:  #454a59;
+  --hi:   #eceef2;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: rgba(91,140,255,0.2); }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1a1c26; border-radius: 2px; }
+
+/* noise */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:0.02;
+  pointer-events:none;
+  z-index:900;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  border-bottom: 1px solid var(--line2);
+  background: rgba(5,5,7,0.88);
+  backdrop-filter: blur(20px);
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  color: var(--hi);
+  text-decoration: none;
+}
+.logo em { font-style:normal; color: var(--a); }
+
+nav ul { display:flex; gap:32px; list-style:none; }
+nav ul a {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+  transition: color .2s;
+}
+nav ul a:hover { color: var(--hi); }
+
+.nav-cta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  background: var(--a);
+  color: #fff;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: opacity .2s;
+}
+.nav-cta:hover { opacity: .82; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: flex-start; justify-content: flex-end;
+  padding: 0 48px 100px;
+  position: relative; overflow: hidden;
+}
+
+.hero-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(var(--line2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line2) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 90% 70% at 40% 10%, black, transparent 75%);
+}
+
+.hero-orb {
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  filter: blur(110px);
+}
+.orb1 { width:700px; height:500px; background:rgba(91,140,255,0.07); top:-100px; left:-150px; }
+.orb2 { width:500px; height:400px; background:rgba(168,85,247,0.05); bottom:0; right:-100px; }
+
+.hero-tag {
+  position:relative;
+  font-family:'DM Mono',monospace;
+  font-size:0.62rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color: var(--a);
+  margin-bottom:32px;
+}
+
+.hero h1 {
+  position:relative;
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size: clamp(4.5rem, 11vw, 10rem);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  max-width: 860px;
+}
+
+.hero h1 .solid {
+  display:block;
+  color: var(--hi);
+}
+
+.hero h1 .outline {
+  display:block;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.15);
+}
+
+.hero h1 .accent {
+  display:block;
+  background: linear-gradient(100deg, var(--hi) 0%, rgba(91,140,255,0.65) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.hero-desc {
+  position:relative;
+  margin-top:36px;
+  font-size:0.95rem;
+  color: var(--dim);
+  max-width:380px;
+  line-height:1.8;
+}
+
+.hero-btns {
+  position:relative;
+  margin-top:44px;
+  display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+}
+
+.btn-solid {
+  font-family:'DM Mono',monospace;
+  font-size:0.68rem; letter-spacing:0.05em; text-transform:uppercase;
+  padding:12px 28px;
+  background: var(--hi);
+  color: var(--bg);
+  border-radius:3px;
+  text-decoration:none;
+  font-weight:500;
+  display:flex; align-items:center; gap:9px;
+  transition: background .2s;
+  cursor:pointer;
+}
+.btn-solid:hover { background: #d4d8e4; }
+
+.btn-outline {
+  font-family:'DM Mono',monospace;
+  font-size:0.68rem; letter-spacing:0.05em; text-transform:uppercase;
+  padding:12px 28px;
+  background:transparent;
+  color: var(--dim);
+  border:1px solid var(--line);
+  border-radius:3px;
+  text-decoration:none;
+  display:flex; align-items:center; gap:9px;
+  transition: border-color .2s, color .2s;
+  cursor:pointer;
+}
+.btn-outline:hover { border-color:rgba(255,255,255,.18); color:var(--hi); }
+
+.hero-ver {
+  position:absolute; bottom:48px; right:48px;
+  font-family:'DM Mono',monospace;
+  font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase;
+  color: var(--dim);
+}
+
+/* ── STATS ── */
+.stats {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.stat {
+  padding:52px 44px;
+  border-right:1px solid var(--line);
+}
+.stat:last-child { border-right:none; }
+.stat-n {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:2.8rem; letter-spacing:-0.03em;
+  color:var(--hi); line-height:1;
+}
+.stat-l {
+  font-family:'DM Mono',monospace;
+  font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--dim); margin-top:8px;
+}
+
+/* ── SECTION BASE ── */
+.sec {
+  padding:120px 48px;
+  max-width:1200px; margin:0 auto;
+}
+.sec-eye {
+  font-family:'DM Mono',monospace;
+  font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--dim); margin-bottom:18px;
+}
+.sec-title {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(2rem,4vw,3.5rem);
+  letter-spacing:-0.03em; color:var(--hi); line-height:1.05;
+}
+.sec-body {
+  font-size:0.9rem; color:var(--dim); line-height:1.85;
+  max-width:420px; margin-top:14px;
+}
+
+/* ── FEATURES ── */
+.feat-grid {
+  margin-top:72px;
+  display:grid; grid-template-columns:repeat(3,1fr);
+  border-top:1px solid var(--line);
+  border-left:1px solid var(--line);
+}
+.feat {
+  padding:40px 32px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  transition:background .3s;
+}
+.feat:hover { background:rgba(255,255,255,0.016); }
+
+.feat-ico {
+  width:34px; height:34px;
+  background:var(--bg2);
+  border:1px solid var(--line);
+  border-radius:5px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.95rem; margin-bottom:24px;
+}
+.feat-name {
+  font-family:'Syne',sans-serif; font-weight:700;
+  font-size:1rem; letter-spacing:-0.01em;
+  color:var(--hi); margin-bottom:10px;
+}
+.feat-desc { font-size:0.85rem; color:var(--dim); line-height:1.8; }
+
+/* ── PLANS ── */
+.plans-grid {
+  margin-top:72px;
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:1px; background:var(--line);
+  border:1px solid var(--line);
+}
+.plan {
+  background:var(--bg1);
+  padding:44px 32px;
+  transition:background .3s;
+}
+.plan:hover { background:var(--bg2); }
+.plan.hi { background:var(--bg2); }
+
+.plan-tag {
+  font-family:'DM Mono',monospace;
+  font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--a);
+  border:1px solid rgba(91,140,255,.2);
+  border-radius:2px; padding:3px 10px;
+  display:inline-block; margin-bottom:24px;
+}
+.plan-name {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:1.2rem; letter-spacing:-0.02em; color:var(--hi);
+}
+.plan-price {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:3rem; letter-spacing:-0.04em; color:var(--hi);
+  margin:16px 0 3px; line-height:1;
+}
+.plan-per {
+  font-family:'DM Mono',monospace;
+  font-size:0.58rem; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--dim); margin-bottom:32px;
+}
+.plan-div { height:1px; background:var(--line); margin-bottom:32px; }
+.plan-feats { list-style:none; display:flex; flex-direction:column; gap:11px; margin-bottom:40px; }
+.plan-feats li {
+  font-size:0.85rem; color:var(--text);
+  display:flex; align-items:center; gap:10px;
+}
+.tick {
+  width:15px; height:15px; border-radius:50%; flex-shrink:0;
+  background:rgba(91,140,255,.1); border:1px solid rgba(91,140,255,.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.5rem; color:var(--a);
+}
+.plan-feats li.no { color:var(--dim); }
+.plan-feats li.no .tick { background:transparent; border-color:var(--line); color:var(--dim); }
+
+.btn-plan {
+  display:block; text-align:center;
+  font-family:'DM Mono',monospace;
+  font-size:0.65rem; letter-spacing:0.07em; text-transform:uppercase;
+  padding:13px; border-radius:3px;
+  border:1px solid var(--line); color:var(--dim);
+  text-decoration:none; transition:all .2s; cursor:pointer;
+}
+.btn-plan:hover { border-color:rgba(255,255,255,.18); color:var(--hi); }
+.plan.hi .btn-plan { background:var(--a); border-color:var(--a); color:#fff; }
+.plan.hi .btn-plan:hover { opacity:.82; }
+
+/* ── DOWNLOAD BIG ── */
+.dl-hero {
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:140px 48px;
+  text-align:center;
+  position:relative; overflow:hidden;
+}
+.dl-glow {
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse 55% 55% at 50% 50%, rgba(91,140,255,.055), transparent 70%);
+  pointer-events:none;
+}
+.dl-hero h2 {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(3rem,7vw,6.5rem);
+  letter-spacing:-0.04em; color:var(--hi); line-height:1;
+  position:relative;
+}
+.dl-hero p {
+  font-size:0.9rem; color:var(--dim);
+  margin:16px 0 52px; position:relative;
+}
+.dl-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; position:relative; }
+.dl-meta {
+  margin-top:36px; position:relative;
+  font-family:'DM Mono',monospace;
+  font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--dim);
+}
+.dl-meta span { color:var(--a); }
+
+/* ── FAQ ── */
+.faq-list { margin-top:60px; }
+.faq-item { border-bottom:1px solid var(--line); }
+.faq-q {
+  width:100%; background:none; border:none;
+  color:var(--text); font-family:'DM Sans',sans-serif;
+  font-size:0.92rem; font-weight:300;
+  padding:26px 0; text-align:left;
+  display:flex; justify-content:space-between; align-items:center;
+  cursor:pointer; gap:20px; transition:color .2s;
+}
+.faq-q:hover { color:var(--hi); }
+.faq-icon {
+  font-family:'DM Mono',monospace; font-size:1rem;
+  color:var(--dim); flex-shrink:0;
+  transition:transform .3s, color .2s;
+}
+.faq-item.open .faq-icon { transform:rotate(45deg); color:var(--a); }
+.faq-a {
+  max-height:0; overflow:hidden;
+  transition:max-height .4s cubic-bezier(.4,0,.2,1), padding .3s;
+  font-size:0.85rem; color:var(--dim); line-height:1.85;
+}
+.faq-item.open .faq-a { max-height:180px; padding-bottom:26px; }
+
+/* ── FOOTER ── */
+footer {
+  border-top:1px solid var(--line);
+  padding:44px 48px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.foot-logo {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:0.95rem; letter-spacing:-0.01em; color:var(--hi);
+}
+.foot-logo em { font-style:normal; color:var(--a); }
+footer p {
+  font-family:'DM Mono',monospace;
+  font-size:0.58rem; letter-spacing:0.07em; text-transform:uppercase;
+  color:var(--dim);
+}
+.foot-links { display:flex; gap:24px; list-style:none; }
+.foot-links a {
+  font-family:'DM Mono',monospace;
+  font-size:0.58rem; letter-spacing:0.07em; text-transform:uppercase;
+  color:var(--dim); text-decoration:none; transition:color .2s;
+}
+.foot-links a:hover { color:var(--hi); }
+
+/* ── UTILS ── */
+.border-t { border-top:1px solid var(--line); }
+.fade { opacity:0; transform:translateY(14px); transition:opacity .65s ease, transform .65s ease; }
+.fade.in { opacity:1; transform:none; }
+
+@media(max-width:860px){
+  nav { padding:0 20px; }
+  nav ul { display:none; }
+  .hero { padding:0 20px 80px; }
+  .hero-ver { display:none; }
+  .stats { grid-template-columns:repeat(2,1fr); }
+  .stat:nth-child(2),.stat:nth-child(4) { border-right:none; }
+  .sec { padding:80px 20px; }
+  .feat-grid { grid-template-columns:1fr; }
+  .plans-grid { grid-template-columns:1fr; }
+  footer { flex-direction:column; gap:20px; text-align:center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">Zork<em>Clients</em></a>
+  <ul>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#download" class="nav-cta">Download</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+
+  <div class="hero-tag">Minecraft Client &nbsp;·&nbsp; v5.4.6 &nbsp;·&nbsp; 1.21.1</div>
+
+  <h1>
+    <span class="solid">The client</span>
+    <span class="outline">built for</span>
+    <span class="accent">winners.</span>
+  </h1>
+
+  <p class="hero-desc">Every module tuned for competitive play. Lightweight, bypass-safe, and updated within hours of every patch.</p>
+
+  <div class="hero-btns">
+    <a href="#" class="btn-solid" onclick="dlJar(event)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Windows
+    </a>
+    <a href="#" class="btn-outline" onclick="dlJar(event)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      macOS
+    </a>
+    <a href="#features" class="btn-outline">See features →</a>
+  </div>
+
+  <div class="hero-ver">v5.4.6 &nbsp;·&nbsp; MC 1.21.1</div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat fade"><div class="stat-n" data-target="48200">0</div><div class="stat-l">Active users</div></div>
+  <div class="stat fade"><div class="stat-n" data-target="247">0</div><div class="stat-l">Modules</div></div>
+  <div class="stat fade"><div class="stat-n" data-target="99" data-sfx="%">0</div><div class="stat-l">Bypass rate</div></div>
+  <div class="stat fade"><div class="stat-n" data-target="120" data-sfx="fps">0</div><div class="stat-l">Avg FPS boost</div></div>
+</div>
+
+<!-- FEATURES -->
+<div class="border-t">
+  <div class="sec" id="features">
+    <div class="sec-eye">Features</div>
+    <h2 class="sec-title fade">Everything you need.<br>Nothing you don't.</h2>
+    <p class="sec-body fade">Built modular. Runs lean. Every feature is independently configurable down to single-tick precision.</p>
+
+    <div class="feat-grid">
+      <div class="feat fade"><div class="feat-ico">⚡</div><div class="feat-name">FPS Engine</div><p class="feat-desc">Proprietary render pipeline bypasses vanilla bottlenecks. Consistent 2–3× improvement across all hardware tiers.</p></div>
+      <div class="feat fade"><div class="feat-ico">🎯</div><div class="feat-name">AimAssist Pro</div><p class="feat-desc">Configurable smoothing with FOV, strength, and per-tick randomization. Human-mimicking and undetectable.</p></div>
+      <div class="feat fade"><div class="feat-ico">🛡️</div><div class="feat-name">AC Bypass</div><p class="feat-desc">Tested on Watchdog, NCP, AAC, and Grim. Patch drops — we ship an update the same day.</p></div>
+      <div class="feat fade"><div class="feat-ico">🎨</div><div class="feat-name">Click GUI</div><p class="feat-desc">Clean, themeable module menu. Custom accent colors, drag layout, animated panels. Looks good on stream.</p></div>
+      <div class="feat fade"><div class="feat-ico">☁️</div><div class="feat-name">Cloud Config</div><p class="feat-desc">Your entire setup saved to the cloud. New machine or fresh install — back in action in 30 seconds.</p></div>
+      <div class="feat fade"><div class="feat-ico">🔧</div><div class="feat-name">247 Modules</div><p class="feat-desc">Combat, movement, render, utility, and world. Scaffold, Speed, KillAura, ChestESP, AutoTotem — all here.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="border-t">
+  <div class="sec" id="pricing">
+    <div class="sec-eye">Pricing</div>
+    <h2 class="sec-title fade">Simple pricing.<br>No gotchas.</h2>
+    <p class="sec-body fade">One-time payment for lifetime tiers. Monthly for flexibility. No dark patterns, no renewal traps.</p>
+
+    <div class="plans-grid">
+      <div class="plan">
+        <div class="plan-tag">Free</div>
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-per">forever</div>
+        <div class="plan-div"></div>
+        <ul class="plan-feats">
+          <li><span class="tick">✓</span> 60 basic modules</li>
+          <li><span class="tick">✓</span> FPS optimizer</li>
+          <li><span class="tick">✓</span> Community support</li>
+          <li class="no"><span class="tick">—</span> AimAssist Pro</li>
+          <li class="no"><span class="tick">—</span> AC Bypass</li>
+          <li class="no"><span class="tick">—</span> Cloud config</li>
+          <li class="no"><span class="tick">—</span> Priority updates</li>
+        </ul>
+        <a href="#download" class="btn-plan">Download Free</a>
+      </div>
+      <div class="plan hi">
+        <div class="plan-tag">Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$9</div>
+        <div class="plan-per">per month</div>
+        <div class="plan-div"></div>
+        <ul class="plan-feats">
+          <li><span class="tick">✓</span> All 247 modules</li>
+          <li><span class="tick">✓</span> FPS optimizer</li>
+          <li><span class="tick">✓</span> AimAssist Pro</li>
+          <li><span class="tick">✓</span> AC Bypass</li>
+          <li><span class="tick">✓</span> Cloud config</li>
+          <li><span class="tick">✓</span> Priority updates</li>
+          <li class="no"><span class="tick">—</span> 1-on-1 setup</li>
+        </ul>
+        <a href="#download" class="btn-plan">Get Pro</a>
+      </div>
+      <div class="plan">
+        <div class="plan-tag">Lifetime</div>
+        <div class="plan-name">Elite</div>
+        <div class="plan-price">$49</div>
+        <div class="plan-per">one-time</div>
+        <div class="plan-div"></div>
+        <ul class="plan-feats">
+          <li><span class="tick">✓</span> All 247 modules</li>
+          <li><span class="tick">✓</span> FPS optimizer</li>
+          <li><span class="tick">✓</span> AimAssist Pro</li>
+          <li><span class="tick">✓</span> AC Bypass</li>
+          <li><span class="tick">✓</span> Cloud config</li>
+          <li><span class="tick">✓</span> Priority updates</li>
+          <li><span class="tick">✓</span> 1-on-1 setup</li>
+        </ul>
+        <a href="#download" class="btn-plan">Go Elite</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="border-t">
+  <div class="sec" id="faq">
+    <div class="sec-eye">FAQ</div>
+    <h2 class="sec-title fade">Common questions.</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">Is ZorkClients safe? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Signed installer, VirusTotal clean, build hashes published on Discord. Been actively developed since 2022 with a fully public changelog.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Will I get banned? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Our bypass team stays ahead of anti-cheat patches with same-day updates. 99%+ bypass rate across major servers — but no client is 100% undetectable. Use responsibly.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Which Minecraft versions are supported? <span class="faq-icon">+</span></button>
+        <div class="faq-a">1.8.9, 1.12.2, 1.16.5, 1.19.4, 1.20.x, and 1.21.1. New version support is added within weeks of major MC releases.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I get a refund? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Full refunds within 48 hours of purchase, no questions. Open a ticket on Discord and it's handled fast.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Do I need Java installed? <span class="faq-icon">+</span></button>
+        <div class="faq-a">The .jar requires Java 17 or higher. If you run a modern Minecraft launcher you almost certainly have it. We include a Java checker on first launch.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOWNLOAD -->
+<div class="dl-hero" id="download">
+  <div class="dl-glow"></div>
+  <h2>Download<br>ZorkClients</h2>
+  <p>Free to start. Runs on Windows and macOS.</p>
+  <div class="dl-btns">
+    <a href="#" class="btn-solid" onclick="dlJar(event)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for Windows
+    </a>
+    <a href="#" class="btn-outline" onclick="dlJar(event)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for macOS
+    </a>
+  </div>
+  <div class="dl-meta">Version <span>5.4.6</span> &nbsp;·&nbsp; Minecraft <span>1.21.1</span> &nbsp;·&nbsp; March 2026</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-logo">Zork<em>Clients</em></div>
+  <p>© 2026 ZorkClients</p>
+  <ul class="foot-links">
+    <li><a href="#">Discord</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="#">Privacy</a></li>
+  </ul>
+</footer>
+
+<script>
+// Download — resolves jar relative to index.html in same folder
+function dlJar(e) {
+  e.preventDefault();
+  const a = document.createElement('a');
+  a.href = 'Zork_Client-5.4.6.jar';
+  a.download = 'Zork_Client-5.4.6.jar';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// Fade observer
+const fades = document.querySelectorAll('.fade');
+const fadeObs = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); fadeObs.unobserve(e.target); } });
+}, { threshold: 0.08 });
+fades.forEach(el => { fadeObs.observe(el); });
+
+// Count-up
+const counters = document.querySelectorAll('.stat-n[data-target]');
+const cntObs = new IntersectionObserver(es => {
+  es.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const target = +el.dataset.target;
+    const sfx = el.dataset.sfx || '';
+    let cur = 0;
+    const tick = target / 70;
+    const t = setInterval(() => {
+      cur = Math.min(cur + tick, target);
+      el.textContent = Math.floor(cur).toLocaleString() + sfx;
+      if (cur >= target) clearInterval(t);
+    }, 16);
+    cntObs.unobserve(el);
+  });
+}, { threshold: 0.5 });
+counters.forEach(c => cntObs.observe(c));
+
+// FAQ
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.parentElement;
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+</script>
+</body>
+</html>
